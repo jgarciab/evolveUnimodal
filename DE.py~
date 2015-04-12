@@ -1,0 +1,247 @@
+from random import Random
+from time import time
+
+import pp
+import inspyred
+
+import problemBench as bench
+
+
+def nsga(display = True, do_plot=False, do_save = True, prng=None):
+    if prng is None:
+        prng = Random()
+        prng.seed(time())
+    """
+    problem = bench.EvolveNoise(time=1E4,dimensions=16)
+    ea = inspyred.ec.emo.NSGA2(prng)
+    ea.variator = [inspyred.ec.variators.blend_crossover,
+                   inspyred.ec.variators.gaussian_mutation]
+    ea.terminator = inspyred.ec.terminators.generation_termination
+
+    #1 core
+
+    final_pop = ea.evolve(generator=problem.generator,
+                          evaluator=problem.evaluator,
+                          pop_size=100,
+                          maximize=problem.maximize,
+                          bounder=problem.bounder,
+                          max_generations=80)
+    """
+    if prng is None:
+        prng = Random()
+        prng.seed(time())
+
+    problem = bench.EvolveNoise(time=320,dimensions=1000)
+    #ea = inspyred.ec.DEA(prng)
+    ea = inspyred.ec.emo.NSGA2(prng)
+    ea.terminator = inspyred.ec.terminators.generation_termination
+    ea.selector = inspyred.ec.selectors.tournament_selection
+
+    ea.variator = [inspyred.ec.variators.uniform_crossover,
+                   inspyred.ec.variators.gaussian_mutation]
+    ea.replacer = inspyred.ec.replacers.steady_state_replacement
+
+    # Multiprocessing
+    final_pop = ea.evolve(generator=problem.generator,
+                          evaluator=problem.evaluatorNormal,
+                          pop_size=1000,
+                          maximize=problem.maximize,
+                          bounder=problem.bounder,
+                          max_generations=100,
+                          num_selected=1000)
+
+    if display:
+
+        best = max(final_pop)
+        print('Best Solution: \n{0}'.format(str(best)))
+
+    tit = "Fixed2ABOnlySins"
+    if do_save:
+        import numpy as np
+        listCand = []
+        listFitn = []
+        [listCand.append(cand.candidate) for cand in ea.archive]
+        [listFitn.append(cand.fitness) for cand in ea.archive]
+        np.savetxt(problem.__class__.__name__+tit+'Cand.txt',listCand)
+        np.savetxt(problem.__class__.__name__+tit+'Fitn.txt',listFitn)
+        final_arc = ea.archive
+        print('%s (%s) Best Solutions: \n' % (ea.__class__.__name__, problem.__class__.__name__))
+        for f in final_arc:
+            print(f,type(f))
+
+    if do_plot:
+        import pylab
+        from scipy.stats import mstats
+
+        #print('%s (%s) Best Solutions: \n' % (ea.__class__.__name__, problem.__class__.__name__))
+
+        final_arc = ea.archive
+        x = []
+        y = []
+        z = []
+        for f in final_arc:
+            #print f
+            x.append(f.fitness[0])
+            y.append(f.fitness[1])
+
+
+
+        pylab.scatter(x, y, color='b')
+        pylab.xlabel('Cost No Stressor')
+        pylab.ylabel('Cost 10 nM Stressor periodic')
+        pylab.title(tit)
+        pylab.savefig(tit+'.pdf', format='pdf')
+        pylab.show()
+
+
+
+    return ea
+
+
+def de(display = False, do_plot=False, do_save = True, prng=None,suddenness = 100, numChanges = 1):
+    if prng is None:
+        prng = Random()
+        prng.seed(time())
+
+    problem = bench.EvolveNoiseFromHist(dimensions=101,numChanges=numChanges)
+    """
+    ea = inspyred.ec.EDA(prng)
+    ea.terminator = inspyred.ec.terminators.evaluation_termination
+    final_pop = ea.evolve(evaluator=problem.evaluatorHist,
+                          generator=problem.generator,
+                          pop_size=1000,
+                          bounder=problem.bounder,
+                          maximize=problem.maximize,
+                          max_evaluations=100000,
+                          num_selected=500,
+                          num_offspring=1000,
+                          num_elites=1)
+    """
+
+    ea = inspyred.swarm.PSO(prng)
+    ea.terminator = inspyred.ec.terminators.evaluation_termination
+    ea.topology = inspyred.swarm.topologies.ring_topology
+    final_pop = ea.evolve(generator=problem.generator,
+                          evaluator=problem.evaluatorHist,
+                          suddenness = suddenness,
+                          numChanges = numChanges,
+                          pop_size=1000,#2500,
+                          bounder=problem.bounder,
+                          maximize=problem.maximize,
+                          max_evaluations=10000,#0,
+                          neighborhood_size=5)
+
+    if display:
+        import pylab
+        import numpy as np
+        best = max(final_pop)
+        print('Best Solution: \n{0}'.format(str(best)))
+        c = best.candidate
+        print c
+
+        dimensions = 120
+        timeReaction = dimensions
+
+        #A3 = np.zeros(timeReaction)
+        #for i in range(0,dimensions/2):
+            #A3 += c[i]*(1+np.sin(2*np.pi/(2*i+1)*np.linspace(0,timeReaction,timeReaction) + c[i+(dimensions)/2]))
+        #A3 = A3/np.sum(A3)
+
+        pylab.plot(c/np.sum(c))
+        arrayCost = np.loadtxt('allCostsSt.txt')
+        pylab.plot(0.8*arrayCost[:,0]+0.2*arrayCost[:,100])
+        pylab.show()
+
+
+    tit = "DE_NoPenaltyChange_newCostS_Sud_2Env_NoStoch"
+    if do_save:
+        import numpy as np
+        listCand = []
+        listFitn = []
+        [listCand.append(cand.candidate) for cand in ea.archive]
+        [listFitn.append(cand.fitness) for cand in ea.archive]
+        np.savetxt('./data'+problem.__class__.__name__+tit+str(suddenness)+str(numChanges)+'Cand.txt',listCand)
+        np.savetxt('./data'+problem.__class__.__name__+tit+str(suddenness)+str(numChanges)+'Fitn.txt',listFitn)
+        final_arc = ea.archive
+        print('%s (%s) Best Solutions: \n' % (ea.__class__.__name__, problem.__class__.__name__))
+
+
+
+
+        #for c in final_arc:
+            #print(c,type(c))
+
+
+
+    if do_plot:
+        import pylab
+        import numpy as np
+        from scipy.stats import mstats
+
+        #print('%s (%s) Best Solutions: \n' % (ea.__class__.__name__, problem.__class__.__name__))
+
+        final_arc = ea.archive
+        c = np.zeros(len(max(final_pop).candidate))
+        x =[]
+        for f in final_arc:
+            c+= f.candidate
+            #print f
+
+            x.append(f.fitness)
+
+        pylab.plot(c)
+        pylab.show()
+        pylab.plot(x, color='b')
+        pylab.xlabel('Cost No Stressor')
+        pylab.ylabel('Cost 10 nM Stressor periodic')
+        #pylab.title(tit)
+
+        #pylab.savefig(tit+str(suddenness)+'.pdf', format='pdf')
+        pylab.show()
+
+
+
+    #return ea
+
+def de2(sud):
+    import numpy as np
+    import time as tm
+
+    print "adsads", sud,sud[0],sud[1]
+    de(do_plot=False,display=False,do_save=True,suddenness=sud[0],numChanges = sud[1])
+    #return ['dasd']
+
+
+if __name__ == '__main__':
+    #import cProfile
+    #cProfile.run('main(do_plot=False,do_save=False)')
+    import numpy as np
+
+    from multiprocessing import Pool
+    from numpy import arange
+    possibleFactors = []
+    for a in arange(2,60,8):
+        for b in arange(1,10,1):
+            possibleFactors.append((a,b))
+
+
+    pool = Pool(processes=8)
+    possibleFactors = [(2, 1), (2, 2), (2, 3), (2, 4), (2, 5), (2, 6), (2, 7), (2, 8), (2, 9), (13, 1), (13, 2), (13, 3), (13, 4), (13, 5), (13, 6), (13, 7), (13, 8), (13, 9), (24, 1), (24, 2), (24, 3), (24, 4), (24, 5), (24, 6), (24, 7), (24, 8), (24, 9), (35, 1), (35, 2), (35, 3), (35, 4), (35, 5), (35, 6), (35, 7), (35, 8), (35, 9), (46, 1), (46, 2), (46, 3), (46, 4), (46, 5), (46, 6), (46, 7), (46, 8), (46, 9), (57, 1), (57, 2), (57, 3), (57, 4), (57, 5), (57, 6), (57, 7), (57, 8), (57, 9), (68, 1), (68, 2), (68, 3), (68, 4), (68, 5), (68, 6), (68, 7), (68, 8), (68, 9)]#range(2,102,11)
+    #possibleFactors = [(2, 1), (2, 2), (2, 3), (2, 4), (2, 5), (2, 6), (2, 7), (2, 8), (2, 9), (13, 1), (13, 2), (13, 3), (13, 4), (13, 5), (13, 6), (13, 7), (13, 8), (13, 9), (24, 1), (24, 2), (24, 3), (24, 4), (24, 5), (24, 6), (24, 7), (24, 8), (24, 9), (35, 1), (35, 2), (35, 3), (35, 4), (35, 5), (35, 6), (35, 7), (35, 8), (35, 9), (46, 1), (46, 2), (46, 3), (46, 4), (46, 5), (46, 6), (46, 7), (46, 8), (46, 9), (57, 1), (57, 2), (57, 3), (57, 4), (57, 5), (57, 6), (57, 7), (57, 8), (57, 9), (68, 1), (68, 2), (68, 3), (68, 4), (68, 5), (68, 6), (68, 7), (68, 8), (68, 9), (79, 1), (79, 2), (79, 3), (79, 4), (79, 5), (79, 6), (79, 7), (79, 8), (79, 9), (90, 1), (90, 2), (90, 3), (90, 4), (90, 5), (90, 6), (90, 7), (90, 8), (90, 9), (101, 1), (101, 2), (101, 3), (101, 4), (101, 5), (101, 6), (101, 7), (101, 8), (101, 9)]#range(2,102,11)
+    #possibleFactors = [(2, 0), (2,1), (2, 2), (2, 3),(2, 4), (2, 5),(2, 6)]
+
+
+    ## 10 Environments
+    #possibleFactors  = []
+    #for i in np.logspace(0.0,0.4,5)-1:
+    #    for j in np.arange(5):
+    #        possibleFactors.append((i,j))
+
+    print possibleFactors
+
+    pool.map(de2, possibleFactors)
+
+
+
+
+

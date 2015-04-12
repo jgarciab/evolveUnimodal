@@ -1,0 +1,65 @@
+# -*- coding: utf-8 -*-
+from splinter import Browser
+import time
+import smtplib
+from email.MIMEMultipart import MIMEMultipart
+from email.MIMEText import MIMEText
+from email.header import Header
+from email.utils import formataddr
+from email.utils import formatdate
+from email.mime.image import MIMEImage
+
+def getData(listProf):
+    tIN = time.clock()
+    with Browser() as browser:
+        outfile = open('outUVM.txt','a')
+        j = 0
+        for name in listProf:
+            j += 1
+            print j, time.clock() - tIN
+            browser.visit('http://www.uvm.edu/directory')
+            browser.type('directory_name', name)
+
+            time.sleep(0.25)
+            a = browser.find_by_id('returndata').value
+            while len(a.split('\n'))<3:
+                time.sleep(0.25)
+                a = browser.find_by_id('returndata').value
+            allA = a.split('\n')[2].split()
+            i = 0
+            for el in allA:
+                i += 1
+                if '@' in el:
+                    outfile.write(el.split('@')[0].split('.')[-1] + ';' + el  + ';' +  ' '.join(allA[i+1:]) + '\n')
+                    break
+
+        outfile.close()
+#time.mktime((2014, 10, 7, 16, 23, 38, 1, 48, 0))
+def sendMail(toaddr):
+    import datetime
+    import time
+
+    fromaddr = 'jgarciab@uvm.edu'
+    msg = MIMEMultipart()
+    msg['From'] = formataddr((str(Header(u'Javier Garcia-Bernardo', 'utf-8')), fromaddr))
+    msg['To'] = toaddr
+    msg['Date'] = formatdate(time.mktime((2014, 12, 2, 17, 13, 38, 1, 48, 0)),localtime=True)
+    msg['Subject'] = "CS 201 Assignment 4 Submission Javier Garcia-Bernardo"
+    msg.attach( MIMEText("\nhttps://copy.com/At0L2auFv7kcJY6E \n\nThanks,\nJavier") )
+    print msg['Date']
+    username = fromaddr
+    password = 'jgb64jgb'
+    #cc = ['books4equality@gmail.com']#,'blkaufma@uvm.edu','adperkin@uvm.edu']
+    to = [toaddr]
+    server = smtplib.SMTP('smtp.uvm.edu:587')
+    server.ehlo()
+    server.starttls()
+    server.login(username,password)
+    server.sendmail(fromaddr, to, msg.as_string())
+    server.quit()
+
+
+if __name__ == '__main__':
+
+    sendMail("vsharma2@uvm.edu")
+    #''

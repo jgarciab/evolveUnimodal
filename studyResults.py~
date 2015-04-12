@@ -1,0 +1,238 @@
+import numpy as np
+from pylab import *
+from scipy.stats import skew,kurtosis
+import os
+"""
+possibleFactors = [(2, 1), (2, 2), (2, 3), (2, 4), (2, 5), (2, 6), (2, 7), (2, 8), (2, 9), (13, 1), (13, 2), (13, 3), (13, 4), (13, 5), (13, 6), (13, 7), (13, 8), (13, 9), (24, 1), (24, 2), (24, 3), (24, 4), (24, 5), (24, 6), (24, 7), (24, 8), (24, 9), (35, 1), (35, 2), (35, 3), (35, 4), (35, 5), (35, 6), (35, 7), (35, 8), (35, 9), (46, 1), (46, 2), (46, 3), (46, 4), (46, 5), (46, 6), (46, 7), (46, 8), (46, 9), (57, 1), (57, 2), (57, 3), (57, 4), (57, 5), (57, 6), (57, 7), (57, 8), (57, 9), (68, 1), (68, 2), (68, 3), (68, 4), (68, 5), (68, 6), (68, 7), (68, 8), (68, 9), (79, 1), (79, 2), (79, 3), (79, 4), (79, 5), (79, 6), (79, 7), (79, 8), (79, 9), (90, 1), (90, 2), (90, 3), (90, 4), (90, 5), (90, 6), (90, 7), (90, 8), (90, 9), (101, 1), (101, 2), (101, 3), (101, 4), (101, 5), (101, 6), (101, 7), (101, 8), (101, 9)]
+
+allFit = np.zeros([8,9])
+allSk = np.zeros([8,9])
+allKut = np.zeros([8,9])
+allMe = np.zeros([8,9])
+allFa = np.zeros([8,9])
+allSt = np.zeros([8,9])
+
+i = -1
+for a in np.arange(2,60,8):#np.arange(2,69,11):
+    i += 1
+    j = -1
+    for b in np.arange(1,10,1):#np.arange(1,10,1):
+        j += 1
+        fnameF = './data/EvolveNoiseFromHistDE_NoPenaltyChange_t' + str(a) + str(b) + 'Fitn.txt'
+        fnameC = './data/EvolveNoiseFromHistDE_NoPenaltyChange_t' + str(a) + str(b) + 'Cand.txt'
+
+        with open(fnameC) as f:
+            for lineN,_ in enumerate(f):
+                pass
+        fitN = np.zeros(lineN+1)
+        with open(fnameF) as f:
+            for lineN,_ in enumerate(f):
+                fitN[lineN] = float(_)
+
+        maxI = nonzero(fitN == np.max(fitN))[0][0]
+
+
+        meanV = np.zeros([100,lineN+1])
+        with open(fnameC) as f:
+            for lineN,line in enumerate(f):
+                line = [float(_) for _ in line.split()]
+                meanV[:, lineN] = np.asarray(line)/np.sum(np.asarray(line))
+
+
+        allFit[i,j] = mean(fitN)
+        #allSk[i,j] = np.mean(skew(meanV,0))
+        #allKut[i,j] = np.mean(kurtosis(meanV,0))
+
+        Mean = np.sum(np.linspace(0,10000,100)*np.mean(meanV,1))
+        Variance = np.sum(np.mean(meanV,1)*(np.linspace(0,10000,100) - Mean)**2)
+
+        allMe[i,j] = Mean
+        allFa[i,j] = np.sqrt(Variance/Mean)
+        allSt[i,j] = np.sqrt(Variance)
+
+
+        if 0 and i < 2 and j in [0,8]:
+            plot(meanV[:,maxI])
+            arrayCost = np.loadtxt('allCostsSt.txt')
+
+            timePoint = np.copy(np.mean(meanV,1))
+            sumT = 0
+            optPartial = np.linspace(10,99,a)
+            optVal = [arrayCost[:,i2].argmax() for i2 in range(100)]
+            for i2 in [99]:#range(100):
+                timePointT = np.copy(timePoint)
+                p = 0.99
+                for j22 in range(a):
+
+                    ind = optVal[int(optPartial[j22])]
+
+
+                    sumA = np.log10(np.sum(timePointT[arrayCost[:,int(optPartial[j22])]>0])**b*np.exp(100./a*(1-p)*np.sum(timePointT[:] * arrayCost[:,int(optPartial[j22])])))
+                    sumT += sumA
+
+
+                    t1 = timePointT[0:ind-1]
+                    t2 = timePointT[ind+2:]
+
+                    if len(t1) > 0:
+                        timePointT = np.concatenate([[0],t1[:],[timePointT[ind] + timePointT[ind-1] + timePointT[ind+1]], t2[:], [0]])
+                    else:
+                        timePointT = [timePointT[ind] + timePointT[ind-1] + timePointT[ind+1]] + t2[:] + [0]
+
+
+                sumNSad = np.log10(np.exp(100*p*np.sum(timePoint[:] * arrayCost[:,0]))) + \
+                float(a)*np.log10(np.sum(timePoint[arrayCost[:,int(optPartial[-1])]>0])**b*np.exp(100./a*(1-p)*np.sum(timePoint[:] * arrayCost[:,int(optPartial[-1])])))
+
+                print np.sum(np.abs(timePointT-timePoint))
+                print float(a)*np.log10(np.sum(timePoint[arrayCost[:,int(optPartial[-1])]>0])**b*np.exp(100./a*(1-p)*np.sum(timePoint[:] * arrayCost[:,int(optPartial[-1])]))), sumNSad
+                print sumT,
+                sumT += np.log10(np.exp(95*p*np.sum(timePoint[:] * arrayCost[:,0])))
+                print sumT
+                title(Mean)
+                show()
+
+
+allFit = allFit.T
+allSk = allSk.T
+allKut = allKut.T
+allMe = allMe.T
+allFa = allFa.T
+allSt = allSt.T
+
+fig = figure(1)
+fig.set_size_inches(20.,10.)
+
+subplot(1,3,1)
+imshow(allFit,interpolation='none',origin="lower")
+xlabel('Graduality')
+ylabel('Number Changes Env')
+title('Fitness')
+colorbar()
+
+subplot(1,3,2)
+imshow(allMe,interpolation='none',origin="lower")
+xlabel('Graduality')
+ylabel('Number Changes Env')
+title('Mean')
+colorbar()
+
+subplot(1,3,3)
+imshow(allFa,interpolation='none',origin="lower")
+xlabel('Graduality')
+ylabel('Number Changes Env')
+title('Fano Factor')
+colorbar()
+
+savefig('NoPenalty_t.png', bbox_inches='tight' ,dpi=100)
+show()
+"""
+
+
+possibleFactors = [(2, 0), (2,1), (2, 2), (2, 3)]
+
+numS = 7
+numE = 9
+allFit = np.zeros([numS,numE])
+allSk = np.zeros([numS,numE])
+allKut = np.zeros([numS,numE])
+allMe = np.zeros([numS,numE])
+allFa = np.zeros([numS,numE])
+allSt = np.zeros([numS,numE])
+allSense = np.zeros([numS,numE])
+
+i = -1
+#10 Env for a in np.logspace(0.0,0.4,5)-1:#np.logspace(0.000,0.5,6)-1:
+for a in np.arange(2,70,11):
+    i += 1
+    j = -1
+    #10 Env for b in np.arange(5):#np.arange(0,7,1):#np.arange(1,10,1):
+    for b in np.arange(1,10,1):
+        j += 1
+        fnameF = './data/EvolveNoiseFromHistDE_NoPenaltyChange_newCostS_Sud_2Env_NoStoch' + str(a) + str(b) + 'Fitn.txt'
+        fnameC = './data/EvolveNoiseFromHistDE_NoPenaltyChange_newCostS_Sud_2Env_NoStoch' + str(a) + str(b) + 'Cand.txt'
+
+        with open(fnameC) as f:
+            for lineN,_ in enumerate(f):
+                pass
+        fitN = np.zeros(lineN+1)
+        with open(fnameF) as f:
+            for lineN,_ in enumerate(f):
+                fitN[lineN] = float(_)
+
+
+        maxI = nonzero(fitN == np.nanmax(fitN))[0][0]
+
+
+        meanV = np.zeros([100,lineN+1])
+        sense = 0
+        with open(fnameC) as f:
+            for lineN,line in enumerate(f):
+                line_ = line.strip().split()
+                if len(line_) == 101:
+                    line = [float(_) for _ in line_[:-1]]
+                    sense += int(np.round(float(line_[-1])))
+                else:
+                    line = [float(_) for _ in line_]
+                meanV[:, lineN] = np.asarray(line)/np.sum(np.asarray(line))
+                meanV[:, lineN] = np.zeros(len(line))
+                meanV[np.nonzero(line == np.max(line))[0][0], lineN] = 1
+
+        allSense[i,j] = sense/lineN
+        allFit[i,j] = np.nanmean(fitN)
+        #allSk[i,j] = np.mean(skew(meanV,0))
+        #allKut[i,j] = np.mean(kurtosis(meanV,0))
+
+        Mean = np.sum(np.linspace(0,10000,100)*np.nanmean(meanV,1))
+        #plot(np.nanmean(meanV,1))
+        #title(str(j))
+        #show()
+        Variance = np.sum(np.nanmean(meanV,1)*(np.linspace(0,10000,100) - Mean)**2)
+        allMe[i,j] = Mean
+        allFa[i,j] = np.sqrt(Variance/Mean)
+        allSt[i,j] = np.sqrt(Variance)
+
+
+allFit = allFit.T
+allSk = allSk.T
+allKut = allKut.T
+allMe = allMe.T
+allFa = allFa.T
+allSt = allSt.T
+allSense = allSense.T
+
+
+fig = figure(1)
+fig.set_size_inches(20.,10.)
+
+subplot(1,4,1)
+imshow(allFit,interpolation='none',origin="lower")
+xlabel('Graduality')
+ylabel('Number Changes Env')
+title('Fitness')
+colorbar()
+
+subplot(1,4,2)
+imshow(allMe,interpolation='none',origin="lower")
+xlabel('Graduality')
+ylabel('Number Changes Env')
+title('Mean')
+colorbar()
+
+subplot(1,4,3)
+imshow(allFa,interpolation='none',origin="lower")
+xlabel('Graduality')
+ylabel('Number Changes Env')
+title('Fano Factor')
+colorbar()
+
+subplot(1,4,4)
+imshow(allSense,interpolation='none',origin="lower")
+xlabel('Graduality')
+ylabel('Number Changes Env')
+title('Semse')
+colorbar()
+
+
+savefig('envMat_SenseS_Sud_2Env_NoStoch.png', bbox_inches='tight' ,dpi=100)
+show()
+
