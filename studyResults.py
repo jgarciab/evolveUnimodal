@@ -1039,6 +1039,92 @@ def extractOptimum1Env():
 
 
 def main():
+
+  """
+  ## Fig. 2 
+  names = ["2Env_NN_PEAHSS","2Env_NN_PEEHSS","2Env_NN_PEVHSS","2Env_NN_PEHHSS","2Env_NN_PELHSS"]
+  possibleFactors = []
+  for numChanges in  [1,3,10,30,100]:
+      for sudden in range(2):
+          for dim in [1,2]:
+              for noise in [0]:
+                  main2_4(name,dim=dim,noise=noise,numE2=1)
+                  #main2_4_Plot(name,dim=dim,noise=noise,numE2=2)
+              figStrategiesRegion(names,cost,dim,noise=0) #imshow
+  figStrategiesDFitnessSensing(names,cost=[1,0],dims=2) #lognormal difference as propto in xcaxis
+  """
+  """
+  ## Fig. 3 
+  names = ["2Env_NN_PEAHSS","2Env_NN_PEEHSS","2Env_NN_PEVHSS","2Env_NN_PEHHSS","2Env_NN_PELHSS"]
+  possibleFactors = []
+  for numChanges in  [1,3,10,30,100]:
+      for sudden in range(2):
+          for dim in [1,2]:
+              for noise in [0]:
+                  main2_4(name,dim=dim,noise=noise,numE2=1)
+                  #main2_4_Plot(name,dim=dim,noise=noise,numE2=2)
+          figStrategiesRegionDeltaFitness(names,cost,dims=[2,1])
+  """
+
+  """
+  ## Fig. 4 
+  for cost in [0,1]:
+      ## To plot distributions uncomment: subplot(...) and plot(cand) in the following files.	
+
+      ## For 3 environments, difference in fitness as a function of the second environment. Only for optimum
+      figNoiseFitnessDifferenceOnlyOptimum3Env([],cost=cost,dims=[2,1])
+
+      ## Noise only for optimum
+      figNoiseFitnessDifferenceOnlyOptimum([0,0.25, 0.5,0.75,1,1.5,2,3,4,5],cost=cost)
+  """
+
+  """
+  ## Fig. S2 
+  names = ["2Env_NN_PEAHSS","2Env_NN_PEEHSS","2Env_NN_PEVHSS","2Env_NN_PEHHSS","2Env_NN_PELHSS"]
+  possibleFactors = []
+  for numChanges in  [1,3,10,30,100]:
+      for sudden in range(2):
+          for dim in [100]:
+              for noise in [0]:
+                  main2_4(name,dim=dim,noise=noise,numE2=1)
+                  #main2_4_Plot(name,dim=dim,noise=noise,numE2=2)
+              figStrategiesRegion(names,cost,dim,noise=0) #imshow
+  """
+
+  """
+  ## Fig. S3 
+  names = ["2Env_NN_PEAHWS","2Env_NN_PEEHWS","2Env_NN_PEVHWS","2Env_NN_PEHHWS","2Env_NN_PELHWS"]
+  possibleFactors = []
+  for numChanges in  [1,3,10,30,100]:
+      for sudden in range(2):
+          for dim in [1,2]:
+              for noise in [0]:
+                  main2_4(name,dim=dim,noise=noise,numE2=1)
+                  #main2_4_Plot(name,dim=dim,noise=noise,numE2=2)
+              figStrategiesRegion(names,cost,dim,noise=0) #imshow
+  figStrategiesDFitnessSensing(names,cost=[1,0],dims=2) #lognormal difference as propto in xcaxis
+  """
+
+  """
+  ## Fig. S3 insets
+  names = ["2Env_NN_PEIHWS","2Env_NN_PEtHWS","2Env_NN_PEjHWS","2Env_NN_PEkHWS","2Env_NN_PEsHWS","2Env_NN_PEmHWS", "2Env_NN_PEnHWS"]
+  possibleFactors = []
+  for numChanges in  [1,3,10,30,100]:
+      for sudden in range(2):
+          for dim in [1,2]:
+              for noise in [0]:
+                  main2_4(name,dim=dim,noise=noise,numE2=1)
+                  #main2_4_Plot(name,dim=dim,noise=noise,numE2=2)
+              figStrategiesRegion(names,cost,dim,noise=0) #imshow
+  """
+  """
+   ## Fig. S5
+   names = ["3Env_0102_PEHAHSS","3Env_0102_PEHEHSS","3Env_0102_PEHVHSS","3Env_0102_PEHHHSS","3Env_0102_PEHLHSS"]
+   figGamma(names,dims=[2,1])
+  """
+
+  """
+  ## OTHER STUFF.
     ## Extract data into something easily studied
 
     names =   ["3Env_Noise_PEAAHSS","3Env_Noise_PEAEHSS","3Env_Noise_PEAVHSS","3Env_Noise_PEAHHSS","3Env_Noise_PEALHSS",
@@ -1085,7 +1171,7 @@ def main():
         for noise in [0]:#,0.25, 0.5,0.75,1,1.5,2,3,4,5]:
             for dim in dims:
                 pass
-                main2_4(name,dim=dim,noise=noise,numE2=1)
+                #main2_4(name,dim=dim,noise=noise,numE2=1)
                 #main2_4_Plot(name,dim=dim,noise=noise,numE2=2)
 
             # Superpose 1 and 2 yamma
@@ -1100,7 +1186,7 @@ def main():
         for dim in dims:
             pass
             ## imshow with prop of cells in high. asymmetry vs frequency
-            figStrategiesRegion(names,cost,dim,noise=0) #imshow
+            #figStrategiesRegion(names,cost,dim,noise=0) #imshow
 
             ## transition rate vs prop cells in high
             #figStrategiesPropTo(names,cost,dim=dim,noise=0) #lines
@@ -1144,6 +1230,6 @@ def main():
 
 
 
-    ##figNoiseFitnessDifferenceOnlyOptimum3Env
+  """
 
 if __name__ == "__main__": main()

@@ -130,7 +130,80 @@ plt.savefig('test4.pdf', bbox_inches='tight' ,dpi=300)
 plt.show()
 
 sleep()
+"""
+#CIS  encuestas
+a = np.array([[17.4,23.7,12.3,9.8,9.4,9.4],
+[27.8,14.5,12.1,14.7,9.4,7.6],
+[2.1,2,2.2,4.3,4.4,5.5],
+[0.7,0.5,1.6,1.8,3.3,3.9],
+[6.9,11.2,21.6,20.9,24.8,20.5],
+[0.7,0.5,2.2,1.5,1.5,4.2]])
 
+a = np.sum(np.reshape(a,(6,3,2)),2)
+
+
+a = np.array([
+[4.3,6.0,8.9,11.9,13.2,26.4],
+[13.0,10.2,10.1,11.7,13.5,15.9],
+[2.4,4.0,4.5,3.2,5.6,1.9],
+[2.9,1.9,2.0,4.0,2.1,0.9],
+[27.4,27.4,21.3,20.9,20.5,5.6],
+[1.4,1.9,3.2,2.1,2.8,1.7]])
+#a = np.sum(np.reshape(a,(6,2,3)),2)
+
+labels = ["PP","PSOE","IU","UPyD","Podemos","Ciudadanos"]
+edades = [1,2,3]
+for line in range(6):
+    for i in range(3):
+        print "%s,%f,%F" %(labels[line],a[line,i],edades[i])
+
+
+labels = ["PP","PSOE","IU","UPyD","Podemos","Ciudadanos"]
+colors = [(0,140./255,1,1.),(1.,85./255,85./255,1),"red","magenta",(0,0,0.5,1.),"orange"]
+fig = plt.figure()
+fig.set_size_inches(10.,6.)
+ax = fig.add_subplot(1,1,1)
+
+for row in range(len(labels)):
+    ax.plot(a[row,:]*100/np.sum(a[row,:]),label=labels.pop(0),alpha=0.8,linewidth=3,color=colors.pop(0))
+
+#plt.xticks([0,1,2],[r"$<=$Primarios","Secundarios","Terciarios"])
+#plt.xticks([0,1],[r"$<=44$",r"$>44$"])
+#ax.set_xlabel("Nivel de estudios")
+ax.set_xlabel("Edad")
+ax.set_ylabel("Porcentaje de votantes")
+plt.legend(loc=2,frameon=False,ncol=2)
+customaxis(ax, c_left='k', c_bottom='k', c_right='none', c_top='none', lw=2, size=12, pad=8)
+plt.savefig('test3.pdf', bbox_inches='tight' ,dpi=300)
+plt.show()
+sleep()
+
+#Los gobiernos de Espana vienen determinados por la gente sin estudios. Tanto PP como PSOE consiguen el 50 de sus votos de gente con estudios primarios o sin estudios.
+ax = plt.subplot(1,1,1)
+x = np.linspace(0.01, 9., num=10)
+print x
+ii = 0
+for a in [0.01,0.1,0.5,0.8,1.]:
+    ii += 1
+    b = 1.5/a
+    tt  =gamma.pdf(x,a,scale=b,loc=0)
+
+    tt = tt/np.sum(tt)
+
+    y = []
+    for i,t in enumerate(tt):
+        y += [11*int(x[i])]*int(10000*t)
+    y = np.asarray(y)
+    print sorted(set(y))
+    for xx in sorted(set(y)):
+        print xx, len(y[y==xx])
+
+    ax.plot(11*x,tt,linewidth=2,color=cols[2*ii],label=(str(a)))
+customaxis(ax, c_left='k', c_bottom='k', c_right='none', c_top='none', lw=2, size=10, pad=8)
+plt.legend()
+
+plt.show()
+"""
 for noise in [0.1,0.5]:
     x = np.linspace(0.0, 100., num=101)
     tt  =expon.pdf(x,scale=noise,loc=0)
